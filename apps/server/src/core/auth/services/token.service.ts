@@ -9,6 +9,7 @@ import {
   JwtAttachmentPayload,
   JwtCollabPayload,
   JwtExchangePayload,
+  JwtMfaTransferPayload,
   JwtPayload,
   JwtType,
 } from '../dto/jwt-payload';
@@ -74,6 +75,22 @@ export class TokenService {
       type: JwtType.ATTACHMENT,
     };
     return this.jwtService.sign(payload, { expiresIn: '1h' });
+  }
+
+  async generateMfaTransferToken(
+    user: User,
+    workspaceId: string,
+  ): Promise<string> {
+    if (user.deactivatedAt || user.deletedAt) {
+      throw new ForbiddenException();
+    }
+
+    const payload: JwtMfaTransferPayload = {
+      sub: user.id,
+      workspaceId,
+      type: JwtType.MFA_TRANSFER,
+    };
+    return this.jwtService.sign(payload, { expiresIn: '5m' });
   }
 
   async verifyJwt(token: string, tokenType: string) {

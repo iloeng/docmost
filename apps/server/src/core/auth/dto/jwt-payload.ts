@@ -3,6 +3,7 @@ export enum JwtType {
   COLLAB = 'collab',
   EXCHANGE = 'exchange',
   ATTACHMENT = 'attachment',
+  MFA_TRANSFER = 'mfa_transfer',
 }
 export type JwtPayload = {
   sub: string;
@@ -30,3 +31,8 @@ export type JwtAttachmentPayload = {
   type: 'attachment';
 };
 
+export interface JwtMfaTransferPayload {
+  sub: string;
+  workspaceId: string;
+  type: 'mfa_transfer';
+}
