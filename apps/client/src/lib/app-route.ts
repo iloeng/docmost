@@ -8,6 +8,7 @@ const APP_ROUTE = {
     PASSWORD_RESET: "/password-reset",
     CREATE_WORKSPACE: "/create",
     SELECT_WORKSPACE: "/select",
+    MFA_CHALLENGE: "/mfa-challenge",
   },
   SETTINGS: {
     ACCOUNT: {

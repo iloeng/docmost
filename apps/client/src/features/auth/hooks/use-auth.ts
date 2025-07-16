@@ -39,9 +39,17 @@ export default function useAuth() {
     setIsLoading(true);
 
     try {
-      await login(data);
+      const response = await login(data);
       setIsLoading(false);
-      navigate(APP_ROUTE.HOME);
+      
+      // Check if MFA is required
+      if (response.requiresMfa && response.mfaTransferToken) {
+        // Store the MFA transfer token in session storage for the MFA page to use
+        sessionStorage.setItem('mfaTransferToken', response.mfaTransferToken);
+        navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
+      } else {
+        navigate(APP_ROUTE.HOME);
+      }
     } catch (err) {
       setIsLoading(false);
       console.log(err);

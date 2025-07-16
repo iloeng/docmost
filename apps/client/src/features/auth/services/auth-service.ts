@@ -4,14 +4,16 @@ import {
   ICollabToken,
   IForgotPassword,
   ILogin,
+  ILoginResponse,
   IPasswordReset,
   ISetupWorkspace,
   IVerifyUserToken,
 } from "@/features/auth/types/auth.types";
 import { IWorkspace } from "@/features/workspace/types/workspace.types.ts";
 
-export async function login(data: ILogin): Promise<void> {
-  await api.post<void>("/auth/login", data);
+export async function login(data: ILogin): Promise<ILoginResponse> {
+  const response = await api.post<ILoginResponse>("/auth/login", data);
+  return response;
 }
 
 export async function logout(): Promise<void> {

@@ -31,6 +31,7 @@ import Shares from "@/pages/settings/shares/shares.tsx";
 import ShareLayout from "@/features/share/components/share-layout.tsx";
 import ShareRedirect from '@/pages/share/share-redirect.tsx';
 import { useTrackOrigin } from "@/hooks/use-track-origin";
+import { MfaChallengePage } from "@/ee/mfa/pages/mfa-challenge-page";
 
 export default function App() {
   const { t } = useTranslation();
@@ -45,6 +46,7 @@ export default function App() {
         <Route path={"/invites/:invitationId"} element={<InviteSignup />} />
         <Route path={"/forgot-password"} element={<ForgotPassword />} />
         <Route path={"/password-reset"} element={<PasswordReset />} />
+        <Route path={"/mfa-challenge"} element={<MfaChallengePage />} />
 
         {!isCloud() && (
           <Route path={"/setup/register"} element={<SetupWorkspace />} />
