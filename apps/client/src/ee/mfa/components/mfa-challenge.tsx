@@ -5,29 +5,33 @@ import {
   Text,
   PinInput,
   Button,
-  Checkbox,
-  Box,
   Stack,
-  Group,
   Anchor,
   Paper,
   Center,
   ThemeIcon,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { zodResolver } from "mantine-form-zod-resolver";
 import { IconDeviceMobile, IconLock } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import classes from "./mfa-challenge.module.css";
-import { verifyMfa } from "../services/mfa-auth-service";
+import { verifyMfa } from "@/ee/mfa";
 import APP_ROUTE from "@/lib/app-route";
 import { useTranslation } from "react-i18next";
 import { useRedirectIfNoMfaToken } from "../hooks/use-redirect-if-no-mfa-token";
+import * as z from "zod";
 
-interface MfaChallengeFormValues {
-  code: string;
-  trustDevice: boolean;
-}
+const formSchema = z.object({
+  code: z
+    .string()
+    .min(6, { message: "Please enter a 6-digit code" })
+    .max(6, { message: "Code must be exactly 6 digits" }),
+  //.regex(/^\d{6}$/, { message: "Code must contain only numbers" }),
+});
+
+type MfaChallengeFormValues = z.infer<typeof formSchema>;
 
 export function MfaChallenge() {
   const { t } = useTranslation();
@@ -38,51 +42,26 @@ export function MfaChallenge() {
   // useRedirectIfNoMfaToken();
 
   const form = useForm<MfaChallengeFormValues>({
+    validate: zodResolver(formSchema),
     initialValues: {
       code: "",
-      trustDevice: false,
-    },
-    validate: {
-      code: (value) => {
-        if (!value || value.length !== 6) {
-          return "Please enter a 6-digit code";
-        }
-        return null;
-      },
     },
   });
 
   const handleSubmit = async (values: MfaChallengeFormValues) => {
     setIsLoading(true);
     try {
-      await verifyMfa({
-        code: values.code,
-      });
+      await verifyMfa(values.code);
       navigate(APP_ROUTE.HOME);
     } catch (error: any) {
       setIsLoading(false);
       notifications.show({
-        message: error.response?.data?.message || "Invalid verification code",
+        message:
+          error.response?.data?.message || t("Invalid verification code"),
         color: "red",
       });
       form.setFieldValue("code", "");
     }
-  };
-
-  const handleUseBackupMethod = () => {
-    // TODO: Implement backup method navigation
-    notifications.show({
-      message: "Backup authentication methods coming soon",
-      color: "blue",
-    });
-  };
-
-  const handleNeedHelp = () => {
-    // TODO: Implement help navigation
-    notifications.show({
-      message: "Help documentation coming soon",
-      color: "blue",
-    });
   };
 
   return (
@@ -134,30 +113,9 @@ export function MfaChallenge() {
                 Confirm
               </Button>
 
-              <Checkbox
-                label="Trust this device for 30 days"
-                {...form.getInputProps("trustDevice", { type: "checkbox" })}
-              />
-
-              <Stack gap="xs" align="center">
-                <Anchor
-                  component="button"
-                  type="button"
-                  size="sm"
-                  onClick={handleUseBackupMethod}
-                >
-                  Use another authentication method
-                </Anchor>
-                <Anchor
-                  component="button"
-                  type="button"
-                  size="sm"
-                  c="dimmed"
-                  onClick={handleNeedHelp}
-                >
-                  Need help authenticating?
-                </Anchor>
-              </Stack>
+              <Anchor component="button" type="button" size="sm" c="dimmed">
+                Need help authenticating?
+              </Anchor>
             </Stack>
           </form>
         </Stack>

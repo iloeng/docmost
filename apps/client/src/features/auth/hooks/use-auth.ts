@@ -43,10 +43,15 @@ export default function useAuth() {
       setIsLoading(false);
       
       // Check if MFA is required
-      if (response.requiresMfa && response.mfaTransferToken) {
-        // Store the MFA transfer token in session storage for the MFA page to use
-        sessionStorage.setItem('mfaTransferToken', response.mfaTransferToken);
-        navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
+      if (response.requiresMfa) {
+        // Check if user needs to set up MFA first
+        if (response.requiresSetup) {
+          // Navigate to MFA setup page with a flag indicating it's required
+          navigate(APP_ROUTE.AUTH.MFA_SETUP_REQUIRED);
+        } else {
+          // Navigate to MFA challenge page
+          navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
+        }
       } else {
         navigate(APP_ROUTE.HOME);
       }

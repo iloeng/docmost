@@ -13,7 +13,7 @@ import { IWorkspace } from "@/features/workspace/types/workspace.types.ts";
 
 export async function login(data: ILogin): Promise<ILoginResponse> {
   const response = await api.post<ILoginResponse>("/auth/login", data);
-  return response;
+  return response.data;
 }
 
 export async function logout(): Promise<void> {

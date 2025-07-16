@@ -5,9 +5,13 @@ export { MfaSetupModal } from "./components/mfa-setup-modal";
 export { MfaDisableModal } from "./components/mfa-disable-modal";
 export { MfaBackupCodesModal } from "./components/mfa-backup-codes-modal";
 
+// Pages
+export { MfaChallengePage } from "./pages/mfa-challenge-page";
+export { MfaSetupRequiredPage } from "./pages/mfa-setup-required-page";
+
 // Services
 export * from "./services/mfa-service";
-export * from "./services/mfa-auth-service";
+//export * from "./services/mfa-auth-service";
 
 // Types
 export * from "./types/mfa.types";

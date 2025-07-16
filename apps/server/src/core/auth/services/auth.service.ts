@@ -47,7 +47,7 @@ export class AuthService {
       includePassword: true,
     });
 
-    const errorMessage = 'email or password does not match';
+    const errorMessage = 'Email or password does not match';
     if (!user || user?.deletedAt) {
       throw new UnauthorizedException(errorMessage);
     }

@@ -40,6 +40,8 @@ export interface ICollabToken {
 }
 
 export interface ILoginResponse {
+  success?: boolean;
   requiresMfa?: boolean;
+  requiresSetup?: boolean;
   mfaTransferToken?: string;
 }
