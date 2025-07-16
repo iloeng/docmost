@@ -43,7 +43,7 @@ export default function useAuth() {
       setIsLoading(false);
       
       // Check if MFA is required
-      if (response.requiresMfa) {
+      if (response?.requiresMfa) {
         // Check if user needs to set up MFA first
         if (response.requiresSetup) {
           // Navigate to MFA setup page with a flag indicating it's required
