@@ -165,7 +165,7 @@ export function MfaBackupCodesModal({
                         )
                       }
                     >
-                      {copied ? t("Copied") : t("Copy all")}
+                      {copied ? t("Copied") : t("Copy")}
                     </Button>
                   )}
                 </CopyButton>
