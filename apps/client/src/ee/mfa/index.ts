@@ -11,7 +11,6 @@ export { MfaSetupRequiredPage } from "./pages/mfa-setup-required-page";
 
 // Services
 export * from "./services/mfa-service";
-//export * from "./services/mfa-auth-service";
 
 // Types
 export * from "./types/mfa.types";
@@ -20,4 +19,4 @@ export * from "./types/mfa.types";
 export * from "./queries/mfa-query";
 
 // Hooks
-export { useRedirectIfNoMfaToken } from "./hooks/use-redirect-if-no-mfa-token";
+export { useMfaPageProtection } from "./hooks/use-mfa-page-protection.ts";

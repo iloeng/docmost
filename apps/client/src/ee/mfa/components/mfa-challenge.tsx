@@ -20,7 +20,6 @@ import classes from "./mfa-challenge.module.css";
 import { verifyMfa } from "@/ee/mfa";
 import APP_ROUTE from "@/lib/app-route";
 import { useTranslation } from "react-i18next";
-import { useRedirectIfNoMfaToken } from "../hooks/use-redirect-if-no-mfa-token";
 import * as z from "zod";
 
 const formSchema = z.object({
@@ -38,8 +37,6 @@ export function MfaChallenge() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect to login if there's no MFA transfer token
-  // useRedirectIfNoMfaToken();
 
   const form = useForm<MfaChallengeFormValues>({
     validate: zodResolver(formSchema),

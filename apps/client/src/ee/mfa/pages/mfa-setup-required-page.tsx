@@ -10,6 +10,7 @@ import {
   Alert,
   Center,
   ThemeIcon,
+  Loader,
 } from "@mantine/core";
 import { IconShieldCheck, IconAlertCircle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
@@ -17,11 +18,13 @@ import APP_ROUTE from "@/lib/app-route";
 import { MfaSetupModal } from "@/ee/mfa";
 import classes from "@/features/auth/components/auth.module.css";
 import { notifications } from "@mantine/notifications";
+import { useMfaPageProtection } from "@/ee/mfa";
 
 export function MfaSetupRequiredPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const { isValidating, isValid } = useMfaPageProtection();
 
   const handleSetupComplete = async () => {
     setSetupModalOpen(false);
@@ -40,6 +43,18 @@ export function MfaSetupRequiredPage() {
   const handleLogout = () => {
     navigate(APP_ROUTE.AUTH.LOGIN);
   };
+
+  if (isValidating) {
+    return (
+      <Center h="100vh">
+        <Loader size="md" />
+      </Center>
+    );
+  }
+
+  if (!isValid) {
+    return null;
+  }
 
   return (
     <Container size={480} className={classes.container}>

@@ -52,3 +52,11 @@ export interface MfaDisableRequest {
 export interface MfaBackupCodesResponse {
   backupCodes: string[];
 }
+
+export interface MfaAccessValidationResponse {
+  valid: boolean;
+  isTransferToken?: boolean;
+  requiresMfaSetup?: boolean;
+  hasMfa?: boolean;
+  isMfaEnforced?: boolean;
+}

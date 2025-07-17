@@ -7,6 +7,7 @@ import {
   MfaSetupRequest,
   MfaSetupResponse,
   MfaStatusResponse,
+  MfaAccessValidationResponse,
 } from "@/ee/mfa";
 
 export async function getMfaStatus(): Promise<MfaStatusResponse> {
@@ -48,4 +49,13 @@ export async function regenerateBackupCodes(data: {
 export async function verifyMfa(code: string): Promise<any> {
   const req = await api.post("/mfa/verify", { code });
   return req.data;
+}
+
+export async function validateMfaAccess(): Promise<MfaAccessValidationResponse> {
+  try {
+    const res = await api.post("/mfa/validate-access");
+    return res.data;
+  } catch {
+    return { valid: false };
+  }
 }
