@@ -41,7 +41,7 @@ import { z } from "zod";
 
 interface MfaSetupModalProps {
   opened: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   onComplete: () => void;
   isRequired?: boolean;
 }
@@ -121,7 +121,6 @@ export function MfaSetupModal({
 
   const handleClose = () => {
     if (active === 1 && backupCodes.length > 0) {
-      // Only allow closing after seeing backup codes
       onComplete();
     }
     onClose();
@@ -148,7 +147,7 @@ export function MfaSetupModal({
       opened={opened}
       onClose={handleClose}
       title={t("Set up two-factor authentication")}
-      size="lg"
+      size="md"
     >
       <Stepper active={active} size="sm">
         <Stepper.Step
@@ -235,7 +234,6 @@ export function MfaSetupModal({
                     <PinInput
                       length={6}
                       type="number"
-                      size="lg"
                       autoFocus
                       oneTimeCode
                       {...form.getInputProps("verificationCode")}

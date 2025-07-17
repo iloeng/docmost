@@ -156,7 +156,11 @@ export class AuthService {
     });
   }
 
-  async passwordReset(passwordResetDto: PasswordResetDto, workspaceId: string) {
+  async passwordReset(
+    passwordResetDto: PasswordResetDto,
+    workspaceId: string,
+    workspace?: Workspace,
+  ) {
     const userToken = await this.userTokenRepo.findById(
       passwordResetDto.token,
       workspaceId,
@@ -170,7 +174,9 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const user = await this.userRepo.findById(userToken.userId, workspaceId);
+    const user = await this.userRepo.findById(userToken.userId, workspaceId, {
+      includeUserMfa: true,
+    });
     if (!user || user.deletedAt) {
       throw new NotFoundException('User not found');
     }
@@ -201,7 +207,18 @@ export class AuthService {
       template: emailTemplate,
     });
 
-    return this.tokenService.generateAccessToken(user);
+    // Check if user has MFA enabled or workspace enforces MFA
+    const userHasMfa = user?.['mfa']?.enabled || false;
+    const workspaceEnforcesMfa = workspace?.enforceMfa || false;
+
+    if (userHasMfa || workspaceEnforcesMfa) {
+      return {
+        requiresLogin: true,
+      };
+    }
+
+    const authToken = await this.tokenService.generateAccessToken(user);
+    return { authToken };
   }
 
   async verifyUserToken(

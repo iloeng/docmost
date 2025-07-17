@@ -38,8 +38,9 @@ export async function forgotPassword(data: IForgotPassword): Promise<void> {
   await api.post<void>("/auth/forgot-password", data);
 }
 
-export async function passwordReset(data: IPasswordReset): Promise<void> {
-  await api.post<void>("/auth/password-reset", data);
+export async function passwordReset(data: IPasswordReset): Promise<{ requiresLogin?: boolean; message?: string }> {
+  const req = await api.post("/auth/password-reset", data);
+  return req.data;
 }
 
 export async function verifyUserToken(data: IVerifyUserToken): Promise<any> {

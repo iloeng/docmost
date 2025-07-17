@@ -38,13 +38,12 @@ export function MfaSetupRequiredPage() {
   };
 
   const handleLogout = () => {
-    // Clear session and redirect to login
     navigate(APP_ROUTE.AUTH.LOGIN);
   };
 
   return (
     <Container size={480} className={classes.container}>
-      <Paper radius="lg" p={40} withBorder>
+      <Paper radius="lg" p={40}>
         <Stack align="center" gap="xl">
           <Center>
             <ThemeIcon size={80} radius="xl" variant="light" color="blue">
@@ -54,7 +53,7 @@ export function MfaSetupRequiredPage() {
 
           <Stack align="center" gap="xs">
             <Title order={2} ta="center" fw={600}>
-              {t("Two-Factor Authentication Required")}
+              {t("Two-factor authentication required")}
             </Title>
             <Text size="md" c="dimmed" ta="center">
               {t(

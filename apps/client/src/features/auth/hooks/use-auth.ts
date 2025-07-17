@@ -27,7 +27,7 @@ import APP_ROUTE from "@/lib/app-route.ts";
 import { RESET } from "jotai/utils";
 import { useTranslation } from "react-i18next";
 import { isCloud } from "@/lib/config.ts";
-import { exchangeTokenRedirectUrl, getHostnameUrl } from "@/ee/utils.ts";
+import { exchangeTokenRedirectUrl } from "@/ee/utils.ts";
 
 export default function useAuth() {
   const { t } = useTranslation();
@@ -121,12 +121,25 @@ export default function useAuth() {
     setIsLoading(true);
 
     try {
-      await passwordReset(data);
+      const response = await passwordReset(data);
       setIsLoading(false);
-      navigate(APP_ROUTE.HOME);
-      notifications.show({
-        message: t("Password reset was successful"),
-      });
+
+      if (response?.requiresLogin) {
+        notifications.show({
+          message:
+            response.message ||
+            t(
+              "Password reset was successful. Please log in with your new password.",
+            ),
+          color: "green",
+        });
+        navigate(APP_ROUTE.AUTH.LOGIN);
+      } else {
+        navigate(APP_ROUTE.HOME);
+        notifications.show({
+          message: t("Password reset was successful"),
+        });
+      }
     } catch (err) {
       setIsLoading(false);
       notifications.show({

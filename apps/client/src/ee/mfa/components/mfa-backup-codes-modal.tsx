@@ -10,12 +10,9 @@ import {
   Code,
   CopyButton,
   Alert,
-  Loader,
-  Center,
   PasswordInput,
 } from "@mantine/core";
 import {
-  IconKey,
   IconRefresh,
   IconCopy,
   IconCheck,
@@ -24,38 +21,38 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
-import { regenerateBackupCodes } from "../services/mfa-service";
+import { regenerateBackupCodes } from "@/ee/mfa";
 import { useForm } from "@mantine/form";
+import { zodResolver } from "mantine-form-zod-resolver";
+import { z } from "zod";
 
 interface MfaBackupCodesModalProps {
   opened: boolean;
   onClose: () => void;
 }
 
-export function MfaBackupCodesModal({ opened, onClose }: MfaBackupCodesModalProps) {
+const formSchema = z.object({
+  confirmPassword: z.string().min(1, { message: "Password is required" }),
+});
+
+export function MfaBackupCodesModal({
+  opened,
+  onClose,
+}: MfaBackupCodesModalProps) {
   const { t } = useTranslation();
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showNewCodes, setShowNewCodes] = useState(false);
 
   const form = useForm({
+    validate: zodResolver(formSchema),
     initialValues: {
       confirmPassword: "",
-    },
-    validate: {
-      confirmPassword: (value) => {
-        if (!value) {
-          return t("Password is required");
-        }
-        if (value.length < 8) {
-          return t("Password must be at least 8 characters");
-        }
-        return null;
-      },
     },
   });
 
   const regenerateMutation = useMutation({
-    mutationFn: (data: { confirmPassword: string }) => regenerateBackupCodes(data),
+    mutationFn: (data: { confirmPassword: string }) =>
+      regenerateBackupCodes(data),
     onSuccess: (data) => {
       setBackupCodes(data.backupCodes);
       setShowNewCodes(true);
@@ -69,7 +66,9 @@ export function MfaBackupCodesModal({ opened, onClose }: MfaBackupCodesModalProp
     onError: (error: any) => {
       notifications.show({
         title: t("Error"),
-        message: error.response?.data?.message || t("Failed to regenerate backup codes"),
+        message:
+          error.response?.data?.message ||
+          t("Failed to regenerate backup codes"),
         color: "red",
       });
     },
@@ -105,14 +104,14 @@ export function MfaBackupCodesModal({ opened, onClose }: MfaBackupCodesModalProp
               >
                 <Text size="sm">
                   {t(
-                    "Backup codes can be used to access your account if you lose access to your authenticator app. Each code can only be used once."
+                    "Backup codes can be used to access your account if you lose access to your authenticator app. Each code can only be used once.",
                   )}
                 </Text>
               </Alert>
 
               <Text size="sm">
                 {t(
-                  "You can regenerate new backup codes at any time. This will invalidate all existing codes."
+                  "You can regenerate new backup codes at any time. This will invalidate all existing codes.",
                 )}
               </Text>
 
@@ -142,21 +141,29 @@ export function MfaBackupCodesModal({ opened, onClose }: MfaBackupCodesModalProp
             >
               <Text size="sm">
                 {t(
-                  "Make sure to save these codes in a secure place. Your old backup codes are no longer valid."
+                  "Make sure to save these codes in a secure place. Your old backup codes are no longer valid.",
                 )}
               </Text>
             </Alert>
 
             <Paper p="md" withBorder>
               <Group justify="space-between" mb="sm">
-                <Text size="sm" fw={600}>{t("Your new backup codes")}</Text>
+                <Text size="sm" fw={600}>
+                  {t("Your new backup codes")}
+                </Text>
                 <CopyButton value={backupCodes.join("\n")}>
                   {({ copied, copy }) => (
                     <Button
                       size="xs"
                       variant="subtle"
                       onClick={copy}
-                      leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                      leftSection={
+                        copied ? (
+                          <IconCheck size={14} />
+                        ) : (
+                          <IconCopy size={14} />
+                        )
+                      }
                     >
                       {copied ? t("Copied") : t("Copy all")}
                     </Button>

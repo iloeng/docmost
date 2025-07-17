@@ -91,7 +91,6 @@ export function MfaChallenge() {
               <PinInput
                 length={6}
                 type="number"
-                size="lg"
                 autoFocus
                 oneTimeCode
                 {...form.getInputProps("code")}

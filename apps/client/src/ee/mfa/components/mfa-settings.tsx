@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Group, Text, Button, Loader, Center } from "@mantine/core";
+import { Group, Text, Button } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
@@ -67,7 +67,7 @@ export function MfaSettings() {
             onClick={() => setSetupModalOpen(true)}
             style={{ whiteSpace: "nowrap" }}
           >
-            {t("Add verification method")}
+            {t("Add 2FA method")}
           </Button>
         ) : (
           <Group gap="sm" wrap="nowrap">

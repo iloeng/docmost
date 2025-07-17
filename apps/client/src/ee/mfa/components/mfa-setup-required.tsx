@@ -1,28 +1,23 @@
 import React from "react";
-import {
-  Container,
-  Paper,
-  Title,
-  Text,
-  Alert,
-  Stack,
-} from "@mantine/core";
+import { Container, Paper, Title, Text, Alert, Stack } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import MfaSetupModal from "./mfa-setup-modal";
+import { MfaSetupModal } from "@/ee/mfa";
+import APP_ROUTE from "@/lib/app-route.ts";
+import { useNavigate } from "react-router-dom";
 
 export default function MfaSetupRequired() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleSetupComplete = () => {
-    // After successful MFA setup, navigate to home
-    window.location.href = "/";
+    navigate(APP_ROUTE.HOME);
   };
 
   return (
     <Container size="sm" py="xl">
       <Paper shadow="sm" p="xl" radius="md" withBorder>
-        <Stack spacing="lg">
+        <Stack>
           <Title order={2} ta="center">
             {t("Two-factor authentication required")}
           </Title>
@@ -43,9 +38,6 @@ export default function MfaSetupRequired() {
 
           <MfaSetupModal
             opened={true}
-            onClose={() => {
-              // Can't close - MFA is required
-            }}
             onComplete={handleSetupComplete}
             isRequired={true}
           />

@@ -1,5 +1,5 @@
 import React from "react";
-import MfaSetupRequired from "../components/mfa-setup-required";
+import MfaSetupRequired from '@/ee/mfa/components/mfa-setup-required.tsx';
 
 export default function MfaSetupRequiredPage() {
   return <MfaSetupRequired />;
