@@ -55,9 +55,9 @@ export function MfaSettings() {
           <Text size="sm" c="dimmed">
             {!isMfaEnabled
               ? t(
-                  "Add an additional layer of security to your account during login.",
+                  "Protect your account with an additional verification layer when signing in.",
                 )
-              : t("Your account is protected with 2-step verification.")}
+              : t("Two-factor authentication is active on your account.")}
           </Text>
         </div>
 

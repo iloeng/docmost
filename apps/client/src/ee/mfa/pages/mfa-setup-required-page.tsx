@@ -26,8 +26,6 @@ export function MfaSetupRequiredPage() {
   const handleSetupComplete = async () => {
     setSetupModalOpen(false);
 
-    // After MFA setup is complete, the user needs to log in again
-    // with their newly configured MFA
     notifications.show({
       title: t("Success"),
       message: t(
@@ -36,14 +34,11 @@ export function MfaSetupRequiredPage() {
       color: "green",
     });
 
-    // Clear temporary token and redirect to login
-    sessionStorage.removeItem("mfaTransferToken");
     navigate(APP_ROUTE.AUTH.LOGIN);
   };
 
   const handleLogout = () => {
     // Clear session and redirect to login
-    sessionStorage.removeItem("mfaTransferToken");
     navigate(APP_ROUTE.AUTH.LOGIN);
   };
 

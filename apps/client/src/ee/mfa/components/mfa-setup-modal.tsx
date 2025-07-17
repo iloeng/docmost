@@ -36,6 +36,8 @@ import { useMutation } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
 import { setupMfa, enableMfa } from "@/ee/mfa";
+import { zodResolver } from "mantine-form-zod-resolver";
+import { z } from "zod";
 
 interface MfaSetupModalProps {
   opened: boolean;
@@ -50,6 +52,12 @@ interface SetupData {
   manualKey: string;
 }
 
+const formSchema = z.object({
+  verificationCode: z
+    .string()
+    .length(6, { message: "Please enter a 6-digit code" }),
+});
+
 export function MfaSetupModal({
   opened,
   onClose,
@@ -63,16 +71,9 @@ export function MfaSetupModal({
   const [manualEntryOpen, setManualEntryOpen] = useState(false);
 
   const form = useForm({
+    validate: zodResolver(formSchema),
     initialValues: {
       verificationCode: "",
-    },
-    validate: {
-      verificationCode: (value) => {
-        if (!value || value.length !== 6) {
-          return t("Please enter a 6-digit code");
-        }
-        return null;
-      },
     },
   });
 
@@ -230,7 +231,7 @@ export function MfaSetupModal({
                     {t("2. Enter the 6-digit code from your authenticator")}
                   </Text>
 
-                  <Center>
+                  <Stack align="center">
                     <PinInput
                       length={6}
                       type="number"
@@ -245,7 +246,12 @@ export function MfaSetupModal({
                         },
                       }}
                     />
-                  </Center>
+                    {form.errors.verificationCode && (
+                      <Text c="red" size="sm">
+                        {form.errors.verificationCode}
+                      </Text>
+                    )}
+                  </Stack>
 
                   <Button
                     type="submit"
