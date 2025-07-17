@@ -64,9 +64,22 @@ export default function useAuth() {
     setIsLoading(true);
 
     try {
-      await acceptInvitation(data);
+      const response = await acceptInvitation(data);
       setIsLoading(false);
-      navigate(APP_ROUTE.HOME);
+
+      if (response?.requiresLogin) {
+        notifications.show({
+          message:
+            response.message ||
+            t(
+              "Account created successfully. Please log in to set up two-factor authentication.",
+            ),
+          color: "green",
+        });
+        navigate(APP_ROUTE.AUTH.LOGIN);
+      } else {
+        navigate(APP_ROUTE.HOME);
+      }
     } catch (err) {
       setIsLoading(false);
       notifications.show({
