@@ -1,7 +1,6 @@
 import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
-  // Create user_mfa table
   await db.schema
     .createTable('user_mfa')
     .addColumn('id', 'uuid', (col) =>
@@ -31,31 +30,12 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Add MFA policy columns to workspaces
   await db.schema
     .alterTable('workspaces')
-    .addColumn('mfa_required', 'boolean', (col) => col.defaultTo(false))
-    .addColumn('mfa_allowed_methods', sql`text[]`, (col) =>
-      col.defaultTo(sql`ARRAY['totp']::text[]`),
-    )
-    .execute();
-
-  // Create index for user_mfa
-  await db.schema
-    .createIndex('idx_user_mfa_workspace_id')
-    .on('user_mfa')
-    .column('workspace_id')
+    .addColumn('enforce_mfa', 'boolean', (col) => col.defaultTo(false))
     .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-  // Drop index
-  await db.schema.dropIndex('idx_user_mfa_workspace_id').execute();
+  await db.schema.alterTable('workspaces').dropColumn('enforce_mfa').execute();
 
-  // Drop MFA columns from workspaces
-  await db.schema
-    .alterTable('workspaces')
-    .dropColumn('mfa_required')
-    .dropColumn('mfa_allowed_methods')
-    .execute();
-
-  // Drop user_mfa table
   await db.schema.dropTable('user_mfa').execute();
 }

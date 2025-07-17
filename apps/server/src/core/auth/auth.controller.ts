@@ -71,10 +71,11 @@ export class AuthController {
       );
 
       if (mfaResult) {
-        if (mfaResult.requiresMfa) {
+        if (mfaResult.isMfaEnforced) {
           return {
-            requiresMfa: true,
-            requiresMfaSetup: (mfaResult as any).requiresMfaSetup || false,
+            hasMfa: mfaResult.hasMfa,
+            requiresMfaSetup: mfaResult.requiresMfaSetup,
+            isMfaEnforced: mfaResult.isMfaEnforced,
           };
         } else if (mfaResult.authToken) {
           // MFA not required, set auth cookie

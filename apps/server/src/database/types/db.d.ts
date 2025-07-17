@@ -336,8 +336,7 @@ export interface Workspaces {
   id: Generated<string>;
   licenseKey: string | null;
   logo: string | null;
-  mfaAllowedMethods: Generated<string[] | null>;
-  mfaRequired: Generated<boolean | null>;
+  enforceMfa: Generated<boolean | null>;
   name: string | null;
   plan: string | null;
   settings: Json | null;

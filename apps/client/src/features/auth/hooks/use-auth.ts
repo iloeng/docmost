@@ -41,17 +41,12 @@ export default function useAuth() {
     try {
       const response = await login(data);
       setIsLoading(false);
-      
+
       // Check if MFA is required
-      if (response?.requiresMfa) {
-        // Check if user needs to set up MFA first
-        if (response.requiresSetup) {
-          // Navigate to MFA setup page with a flag indicating it's required
-          navigate(APP_ROUTE.AUTH.MFA_SETUP_REQUIRED);
-        } else {
-          // Navigate to MFA challenge page
-          navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
-        }
+      if (response?.hasMfa) {
+        navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
+      } else if (response?.requiresMfaSetup) {
+        navigate(APP_ROUTE.AUTH.MFA_SETUP_REQUIRED);
       } else {
         navigate(APP_ROUTE.HOME);
       }
