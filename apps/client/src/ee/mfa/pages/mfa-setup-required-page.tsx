@@ -107,6 +107,7 @@ export function MfaSetupRequiredPage() {
         opened={setupModalOpen}
         onClose={() => setSetupModalOpen(false)}
         onComplete={handleSetupComplete}
+        isRequired={true}
       />
     </Container>
   );

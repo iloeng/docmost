@@ -41,6 +41,7 @@ interface MfaSetupModalProps {
   opened: boolean;
   onClose: () => void;
   onComplete: () => void;
+  isRequired?: boolean;
 }
 
 interface SetupData {
@@ -53,6 +54,7 @@ export function MfaSetupModal({
   opened,
   onClose,
   onComplete,
+  isRequired = false,
 }: MfaSetupModalProps) {
   const { t } = useTranslation();
   const [active, setActive] = useState(0);
