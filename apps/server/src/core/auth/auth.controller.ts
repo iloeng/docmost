@@ -44,9 +44,6 @@ export class AuthController {
   ) {
     validateSsoEnforcement(workspace);
 
-    //TODO: validate before hand if mfa is available in the edition
-    // do that in the guards
-
     let MfaModule: any;
     let isMfaModuleReady = false;
     try {
@@ -134,7 +131,6 @@ export class AuthController {
   ) {
     const result = await this.authService.passwordReset(
       passwordResetDto,
-      workspace.id,
       workspace,
     );
 

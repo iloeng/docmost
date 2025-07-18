@@ -9,7 +9,7 @@ import {
   JwtAttachmentPayload,
   JwtCollabPayload,
   JwtExchangePayload,
-  JwtMfaTransferPayload,
+  JwtMfaTokenPayload,
   JwtPayload,
   JwtType,
 } from '../dto/jwt-payload';
@@ -77,7 +77,7 @@ export class TokenService {
     return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
 
-  async generateMfaTransferToken(
+  async generateMfaToken(
     user: User,
     workspaceId: string,
   ): Promise<string> {
@@ -85,10 +85,10 @@ export class TokenService {
       throw new ForbiddenException();
     }
 
-    const payload: JwtMfaTransferPayload = {
+    const payload: JwtMfaTokenPayload = {
       sub: user.id,
       workspaceId,
-      type: JwtType.MFA_TRANSFER,
+      type: JwtType.MFA_TOKEN,
     };
     return this.jwtService.sign(payload, { expiresIn: '5m' });
   }

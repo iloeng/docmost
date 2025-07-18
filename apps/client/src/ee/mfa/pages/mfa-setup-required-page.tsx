@@ -33,7 +33,6 @@ export function MfaSetupRequiredPage() {
       message: t(
         "Two-factor authentication has been set up. Please log in again.",
       ),
-      color: "green",
     });
 
     navigate(APP_ROUTE.AUTH.LOGIN);

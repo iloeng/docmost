@@ -33,7 +33,6 @@ export function MfaSettings() {
     notifications.show({
       title: t("Success"),
       message: t("Two-factor authentication has been enabled"),
-      color: "green",
     });
   };
 

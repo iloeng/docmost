@@ -42,6 +42,6 @@ export interface ICollabToken {
 export interface ILoginResponse {
   hasMfa?: boolean;
   requiresMfaSetup?: boolean;
-  mfaTransferToken?: string;
+  mfaToken?: string;
   isMfaEnforced?: boolean;
 }

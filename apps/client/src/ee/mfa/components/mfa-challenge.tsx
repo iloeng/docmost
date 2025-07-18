@@ -21,13 +21,17 @@ import { verifyMfa } from "@/ee/mfa";
 import APP_ROUTE from "@/lib/app-route";
 import { useTranslation } from "react-i18next";
 import * as z from "zod";
+import { MfaBackupCodeInput } from "./mfa-backup-code-input";
 
 const formSchema = z.object({
   code: z
     .string()
-    .min(6, { message: "Please enter a 6-digit code" })
-    .max(6, { message: "Code must be exactly 6 digits" }),
-  //.regex(/^\d{6}$/, { message: "Code must contain only numbers" }),
+    .refine(
+      (val) => (val.length === 6 && /^\d{6}$/.test(val)) || val.length === 8,
+      {
+        message: "Enter a 6-digit code or 8-character backup code",
+      },
+    ),
 });
 
 type MfaChallengeFormValues = z.infer<typeof formSchema>;
@@ -36,7 +40,7 @@ export function MfaChallenge() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [useBackupCode, setUseBackupCode] = useState(false);
 
   const form = useForm<MfaChallengeFormValues>({
     validate: zodResolver(formSchema),
@@ -73,47 +77,82 @@ export function MfaChallenge() {
 
           <Stack align="center" gap="xs">
             <Title order={2} ta="center" fw={600}>
-              Two-Factor Authentication
+              {t("Two-factor authentication")}
             </Title>
             <Text size="sm" c="dimmed" ta="center">
-              Enter the 6-digit code found in your authenticator app
+              {useBackupCode
+                ? t("Enter one of your backup codes")
+                : t("Enter the 6-digit code found in your authenticator app")}
             </Text>
           </Stack>
 
-          <form
-            onSubmit={form.onSubmit(handleSubmit)}
-            style={{ width: "100%" }}
-          >
-            <Stack gap="lg">
-              <PinInput
-                length={6}
-                type="number"
-                autoFocus
-                oneTimeCode
-                {...form.getInputProps("code")}
-                styles={{
-                  input: {
-                    fontSize: "1.2rem",
-                    textAlign: "center",
-                  },
-                }}
-              />
+          {!useBackupCode ? (
+            <form
+              onSubmit={form.onSubmit(handleSubmit)}
+              style={{ width: "100%" }}
+            >
+              <Stack gap="lg">
+                <Center>
+                  <PinInput
+                    length={6}
+                    type="number"
+                    autoFocus
+                    oneTimeCode
+                    {...form.getInputProps("code")}
+                    error={!!form.errors.code}
+                    styles={{
+                      input: {
+                        fontSize: "1.2rem",
+                        textAlign: "center",
+                      },
+                    }}
+                  />
+                </Center>
+                {form.errors.code && (
+                  <Text c="red" size="sm" ta="center">
+                    {form.errors.code}
+                  </Text>
+                )}
 
-              <Button
-                type="submit"
-                fullWidth
-                size="md"
-                loading={isLoading}
-                leftSection={<IconLock size={18} />}
-              >
-                Confirm
-              </Button>
+                <Button
+                  type="submit"
+                  fullWidth
+                  size="md"
+                  loading={isLoading}
+                  leftSection={<IconLock size={18} />}
+                >
+                  {t("Verify")}
+                </Button>
 
-              <Anchor component="button" type="button" size="sm" c="dimmed">
-                Need help authenticating?
-              </Anchor>
-            </Stack>
-          </form>
+                <Anchor
+                  component="button"
+                  type="button"
+                  size="sm"
+                  c="dimmed"
+                  onClick={() => {
+                    setUseBackupCode(true);
+                    form.setFieldValue("code", "");
+                    form.clearErrors();
+                  }}
+                >
+                  {t("Use backup code")}
+                </Anchor>
+              </Stack>
+            </form>
+          ) : (
+            <MfaBackupCodeInput
+              value={form.values.code}
+              onChange={(value) => form.setFieldValue("code", value)}
+              error={form.errors.code?.toString()}
+              onSubmit={() => handleSubmit(form.values)}
+              onCancel={() => {
+                setUseBackupCode(false);
+                form.setFieldValue("code", "");
+                form.clearErrors();
+              }}
+              isLoading={isLoading}
+            />
+          )}
         </Stack>
       </Paper>
     </Container>

@@ -126,12 +126,9 @@ export default function useAuth() {
 
       if (response?.requiresLogin) {
         notifications.show({
-          message:
-            response.message ||
-            t(
-              "Password reset was successful. Please log in with your new password.",
-            ),
-          color: "green",
+          message: t(
+            "Password reset was successful. Please log in with your new password.",
+          ),
         });
         navigate(APP_ROUTE.AUTH.LOGIN);
       } else {

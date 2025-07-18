@@ -158,12 +158,11 @@ export class AuthService {
 
   async passwordReset(
     passwordResetDto: PasswordResetDto,
-    workspaceId: string,
-    workspace?: Workspace,
+    workspace: Workspace,
   ) {
     const userToken = await this.userTokenRepo.findById(
       passwordResetDto.token,
-      workspaceId,
+      workspace.id,
     );
 
     if (
@@ -174,7 +173,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const user = await this.userRepo.findById(userToken.userId, workspaceId, {
+    const user = await this.userRepo.findById(userToken.userId, workspace.id, {
       includeUserMfa: true,
     });
     if (!user || user.deletedAt) {
@@ -189,7 +188,7 @@ export class AuthService {
           password: newPasswordHash,
         },
         user.id,
-        workspaceId,
+        workspace.id,
         trx,
       );
 
@@ -209,7 +208,7 @@ export class AuthService {
 
     // Check if user has MFA enabled or workspace enforces MFA
     const userHasMfa = user?.['mfa']?.enabled || false;
-    const workspaceEnforcesMfa = workspace?.enforceMfa || false;
+    const workspaceEnforcesMfa = workspace.enforceMfa || false;
 
     if (userHasMfa || workspaceEnforcesMfa) {
       return {

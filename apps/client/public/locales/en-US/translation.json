@@ -457,5 +457,6 @@
   "Account created successfully. Please log in to set up two-factor authentication.": "Account created successfully. Please log in to set up two-factor authentication.",
   "Password reset successful. Please log in with your new password and complete two-factor authentication.": "Password reset successful. Please log in with your new password and complete two-factor authentication.",
   "Password reset successful. Please log in with your new password to set up two-factor authentication.": "Password reset successful. Please log in with your new password to set up two-factor authentication.",
-  "Password reset was successful. Please log in with your new password.": "Password reset was successful. Please log in with your new password."
+  "Password reset was successful. Please log in with your new password.": "Password reset was successful. Please log in with your new password.",
+  "Two-factor authentication": "Two-factor authentication"
 }

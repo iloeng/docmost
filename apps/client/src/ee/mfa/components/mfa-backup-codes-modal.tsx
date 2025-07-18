@@ -60,7 +60,6 @@ export function MfaBackupCodesModal({
       notifications.show({
         title: t("Success"),
         message: t("New backup codes have been generated"),
-        color: "green",
       });
     },
     onError: (error: any) => {
