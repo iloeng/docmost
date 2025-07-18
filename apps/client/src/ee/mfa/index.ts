@@ -15,8 +15,5 @@ export * from "./services/mfa-service";
 // Types
 export * from "./types/mfa.types";
 
-// Queries
-export * from "./queries/mfa-query";
-
 // Hooks
 export { useMfaPageProtection } from "./hooks/use-mfa-page-protection.ts";

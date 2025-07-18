@@ -57,6 +57,6 @@ export interface MfaAccessValidationResponse {
   valid: boolean;
   isTransferToken?: boolean;
   requiresMfaSetup?: boolean;
-  hasMfa?: boolean;
+  userHasMfa?: boolean;
   isMfaEnforced?: boolean;
 }

@@ -29,7 +29,7 @@ export function useMfaPageProtection() {
         navigate(APP_ROUTE.AUTH.MFA_SETUP_REQUIRED);
       } else if (
         !result.requiresMfaSetup &&
-        result.hasMfa &&
+        result.userHasMfa &&
         !isOnChallengePage
       ) {
         // User has MFA and should be on challenge page

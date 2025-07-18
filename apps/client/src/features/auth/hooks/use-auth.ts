@@ -43,7 +43,7 @@ export default function useAuth() {
       setIsLoading(false);
 
       // Check if MFA is required
-      if (response?.hasMfa) {
+      if (response?.userHasMfa) {
         navigate(APP_ROUTE.AUTH.MFA_CHALLENGE);
       } else if (response?.requiresMfaSetup) {
         navigate(APP_ROUTE.AUTH.MFA_SETUP_REQUIRED);

@@ -69,9 +69,9 @@ export class AuthController {
 
       if (mfaResult) {
         // If user has MFA enabled OR workspace enforces MFA, require MFA verification
-        if (mfaResult.hasMfa || mfaResult.requiresMfaSetup) {
+        if (mfaResult.userHasMfa || mfaResult.requiresMfaSetup) {
           return {
-            hasMfa: mfaResult.hasMfa,
+            userHasMfa: mfaResult.userHasMfa,
             requiresMfaSetup: mfaResult.requiresMfaSetup,
             isMfaEnforced: mfaResult.isMfaEnforced,
           };
