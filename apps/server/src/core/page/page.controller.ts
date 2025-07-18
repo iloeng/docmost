@@ -8,12 +8,16 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  Query,
+  Get,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { PageService } from './services/page.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 import { MovePageDto, MovePageToSpaceDto } from './dto/move-page.dto';
 import { PageHistoryIdDto, PageIdDto, PageInfoDto } from './dto/page.dto';
+import { DeletePageDto } from './dto/delete-page.dto';
 import { PageHistoryService } from './services/page-history.service';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { AuthWorkspace } from '../../common/decorators/auth-workspace.decorator';
@@ -100,7 +104,29 @@ export class PageController {
 
   @HttpCode(HttpStatus.OK)
   @Post('delete')
-  async delete(@Body() pageIdDto: PageIdDto, @AuthUser() user: User) {
+  async delete(@Body() deletePageDto: DeletePageDto, @AuthUser() user: User) {
+    const page = await this.pageRepo.findById(deletePageDto.pageId);
+
+    if (!page) {
+      throw new NotFoundException('Page not found');
+    }
+
+    const ability = await this.spaceAbility.createForUser(user, page.spaceId);
+    if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    const result = await this.pageService.deletePage(
+      deletePageDto.pageId,
+      user.id,
+      deletePageDto.forceDelete,
+    );
+    return result;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('restore')
+  async restore(@Body() pageIdDto: PageIdDto, @AuthUser() user: User) {
     const page = await this.pageRepo.findById(pageIdDto.pageId);
 
     if (!page) {
@@ -111,13 +137,28 @@ export class PageController {
     if (ability.cannot(SpaceCaslAction.Manage, SpaceCaslSubject.Page)) {
       throw new ForbiddenException();
     }
-    await this.pageService.forceDelete(pageIdDto.pageId);
+
+    const result = await this.pageService.restorePage(
+      pageIdDto.pageId,
+      user.id,
+    );
+    return result;
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('restore')
-  async restore(@Body() pageIdDto: PageIdDto) {
-    //  await this.pageService.restore(deletePageDto.id);
+  @Post('trash')
+  async getTrashPages(
+    @AuthUser() user: User,
+    @Body('spaceId') spaceId: string,
+    @Body() pagination: PaginationOptions,
+  ) {
+    // Check if user has access to this space
+    const ability = await this.spaceAbility.createForUser(user, spaceId);
+    if (ability.cannot(SpaceCaslAction.Read, SpaceCaslSubject.Page)) {
+      throw new ForbiddenException();
+    }
+
+    return await this.pageService.getTrashPages(user.id, spaceId, pagination);
   }
 
   @HttpCode(HttpStatus.OK)

@@ -225,17 +225,19 @@ export function useTreeMutation<T>(spaceId: string) {
 
   const onDelete: DeleteHandler<T> = async (args: { ids: string[] }) => {
     try {
-      await deletePageMutation.mutateAsync(args.ids[0]);
-
-      const node = tree.find(args.ids[0]);
-      if (!node) {
-        return;
-      }
-
-      tree.drop({ id: args.ids[0] });
+      const result = await deletePageMutation.mutateAsync(args.ids[0]);
+      
+      // Remove all deleted pages from the tree
+      result.deletedPageIds.forEach(id => {
+        tree.drop({ id });
+      });
       setData(tree.data);
-
-      if (pageSlug && isPageInNode(node, pageSlug.split("-")[1])) {
+      
+      // Navigate away if current page was deleted
+      if (pageSlug && result.deletedPageIds.some(id => {
+        const node = tree.find(id);
+        return node && isPageInNode(node, pageSlug.split("-")[1]);
+      })) {
         navigate(getSpaceUrl(spaceSlug));
       }
 
@@ -243,7 +245,7 @@ export function useTreeMutation<T>(spaceId: string) {
         emit({
           operation: "deleteTreeNode",
           spaceId: spaceId,
-          payload: { node: node.data },
+          payload: { deletedPageIds: result.deletedPageIds },
         });
       }, 50);
     } catch (error) {

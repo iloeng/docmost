@@ -14,6 +14,7 @@ import {
   IconPlus,
   IconSearch,
   IconSettings,
+  IconTrash,
 } from "@tabler/icons-react";
 import classes from "./space-sidebar.module.css";
 import React from "react";
@@ -121,6 +122,26 @@ export function SpaceSidebar() {
                   stroke={2}
                 />
                 <span>{t("Space settings")}</span>
+              </div>
+            </UnstyledButton>
+
+            <UnstyledButton
+              component={Link}
+              to={`${getSpaceUrl(spaceSlug)}/trash`}
+              className={clsx(
+                classes.menu,
+                location.pathname.toLowerCase() === `${getSpaceUrl(spaceSlug)}/trash`
+                  ? classes.activeButton
+                  : "",
+              )}
+            >
+              <div className={classes.menuItemInner}>
+                <IconTrash
+                  size={18}
+                  className={classes.menuItemIcon}
+                  stroke={2}
+                />
+                <span>{t("Trash")}</span>
               </div>
             </UnstyledButton>
 

@@ -98,7 +98,24 @@ export const useTreeSocket = () => {
 
           break;
         case "deleteTreeNode":
-          if (treeApi.find(event.payload.node.id)) {
+          // Handle new format with multiple deleted pages
+          if (event.payload.deletedPageIds) {
+            event.payload.deletedPageIds.forEach(id => {
+              if (treeApi.find(id)) {
+                treeApi.drop({ id });
+              }
+            });
+            setTreeData(treeApi.data);
+            
+            // Invalidate queries for all deleted pages
+            event.payload.deletedPageIds.forEach(id => {
+              queryClient.invalidateQueries({
+                queryKey: ["pages", id],
+              });
+            });
+          } 
+          // Handle old format for backward compatibility
+          else if (event.payload.node && treeApi.find(event.payload.node.id)) {
             treeApi.drop({ id: event.payload.node.id });
             setTreeData(treeApi.data);
 
@@ -106,6 +123,12 @@ export const useTreeSocket = () => {
               queryKey: ["pages", event.payload.node.slugId].filter(Boolean),
             });
           }
+          break;
+        case "restoreTreeNode":
+          // When a page is restored, refetch the tree to get proper structure
+          queryClient.invalidateQueries({
+            queryKey: ["sidebar-pages"],
+          });
           break;
       }
     });

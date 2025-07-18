@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -34,6 +35,9 @@ import { jsonToNode, jsonToText } from 'src/collaboration/collaboration.util';
 import { CopyPageMapEntry, ICopyPageAttachment } from '../dto/copy-page.dto';
 import { Node as PMNode } from '@tiptap/pm/model';
 import { StorageService } from '../../../integrations/storage/storage.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ShareRepo } from '@docmost/db/repos/share/share.repo';
+import { SpaceMemberRepo } from '@docmost/db/repos/space/space-member.repo';
 
 @Injectable()
 export class PageService {
@@ -44,6 +48,9 @@ export class PageService {
     private attachmentRepo: AttachmentRepo,
     @InjectKysely() private readonly db: KyselyDB,
     private readonly storageService: StorageService,
+    private eventEmitter: EventEmitter2,
+    private shareRepo: ShareRepo,
+    private spaceMemberRepo: SpaceMemberRepo,
   ) {}
 
   async findById(
@@ -506,8 +513,89 @@ export class PageService {
     return await this.pageRepo.getRecentPages(userId, pagination);
   }
 
-  async forceDelete(pageId: string): Promise<void> {
-    await this.pageRepo.deletePage(pageId);
+  async deletePage(
+    pageId: string,
+    userId: string,
+    forceDelete = false,
+  ): Promise<{ deletedPageIds: string[] }> {
+    let deletedPageIds: string[] = [];
+
+    await this.db.transaction().execute(async (trx) => {
+      if (forceDelete) {
+        // Permanent deletion - shares are deleted by cascade
+        deletedPageIds =
+          await this.pageRepo.permanentlyDeletePageAndDescendants(pageId, trx);
+      } else {
+        // Soft delete
+        deletedPageIds = await this.pageRepo.softDeletePageAndDescendants(
+          pageId,
+          userId,
+          trx,
+        );
+
+        // Manually delete shares for soft-deleted pages
+        await this.shareRepo.deleteByPageIds(deletedPageIds, trx);
+      }
+    });
+
+    // Emit event for real-time updates
+    /* this.eventEmitter.emit('page.deleted', {
+      pageId,
+      spaceId: page.spaceId,
+      workspaceId: page.workspaceId,
+      userId,
+      deletedPageIds,
+      permanent: forceDelete,
+    });*/
+
+    return { deletedPageIds };
+  }
+
+  async restorePage(
+    pageId: string,
+    userId: string,
+  ): Promise<{
+    detachedFromParent: boolean;
+    restoredPageIds: string[];
+    page: Page;
+  }> {
+    //  if (!page.deletedAt) {
+    //  throw new BadRequestException('Page is not in trash');
+    //}
+
+    const result = await this.db.transaction().execute(async (trx) => {
+      return await this.pageRepo.restorePageAndDescendants(pageId, trx);
+    });
+
+    // Fetch the restored page with all relations
+    const restoredPage = await this.pageRepo.findById(pageId, {
+      includeSpace: true,
+      includeCreator: true,
+      includeLastUpdatedBy: true,
+    });
+
+    // Emit event for real-time updates
+    /* this.eventEmitter.emit('page.restored', {
+      pageId,
+      spaceId: restoredPage.spaceId,
+      workspaceId: restoredPage.workspaceId,
+      userId,
+      restoredPageIds: result.restoredPageIds,
+      detachedFromParent: result.detachedFromParent,
+    });*/
+
+    return {
+      ...result,
+      page: restoredPage,
+    };
+  }
+
+  async getTrashPages(
+    userId: string,
+    spaceId: string,
+    pagination: PaginationOptions,
+  ) {
+    return await this.pageRepo.getTrashPages(spaceId, pagination);
   }
 }
 

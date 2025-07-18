@@ -211,6 +211,15 @@ export class PageRepo {
     ).as('contributors');
   }
 
+  withDeletedBy(eb: ExpressionBuilder<DB, 'pages'>) {
+    return jsonObjectFrom(
+      eb
+        .selectFrom('users')
+        .select(['users.id', 'users.name', 'users.avatarUrl'])
+        .whereRef('users.id', '=', 'pages.deletedById'),
+    ).as('deletedBy');
+  }
+
   async getPageAndDescendants(
     parentPageId: string,
     opts: { includeContent: boolean },
@@ -251,5 +260,203 @@ export class PageRepo {
       .selectFrom('page_hierarchy')
       .selectAll()
       .execute();
+  }
+
+  async softDeletePageAndDescendants(
+    pageId: string,
+    deletedById: string,
+    trx?: KyselyTransaction,
+  ): Promise<string[]> {
+    const db = dbOrTx(this.db, trx);
+
+    // Get all page IDs that will be soft deleted (page + descendants)
+    const pageIds = await db
+      .withRecursive('page_tree', (qb) =>
+        qb
+          .selectFrom('pages')
+          .select('id')
+          .where('id', '=', pageId)
+          .where('deletedAt', 'is', null)
+          .unionAll((eb) =>
+            eb
+              .selectFrom('pages as p')
+              .select('p.id')
+              .innerJoin('page_tree as pt', 'p.parentPageId', 'pt.id')
+              .where('p.deletedAt', 'is', null),
+          ),
+      )
+      .selectFrom('page_tree')
+      .select('id')
+      .execute();
+
+    const idsToDelete = pageIds.map((p) => p.id);
+
+    if (idsToDelete.length === 0) {
+      return [];
+    }
+
+    // Soft delete all pages in the tree
+    await db
+      .updateTable('pages')
+      .set({
+        deletedAt: new Date(),
+        deletedById: deletedById,
+        updatedAt: new Date(),
+      })
+      .where('id', 'in', idsToDelete)
+      .execute();
+
+    return idsToDelete;
+  }
+
+  async restorePageAndDescendants(
+    pageId: string,
+    trx?: KyselyTransaction,
+  ): Promise<{ detachedFromParent: boolean; restoredPageIds: string[] }> {
+    const db = dbOrTx(this.db, trx);
+
+    // Check if parent is deleted
+    const page = await this.findById(pageId, { trx });
+    if (!page) {
+      throw new Error('Page not found');
+    }
+
+    let detachedFromParent = false;
+
+    if (page.parentPageId) {
+      const parent = await this.findById(page.parentPageId, { trx });
+      if (parent?.deletedAt) {
+        // Detach from deleted parent
+        await db
+          .updateTable('pages')
+          .set({
+            parentPageId: null,
+            updatedAt: new Date(),
+          })
+          .where('id', '=', pageId)
+          .execute();
+        detachedFromParent = true;
+      }
+    }
+
+    // Get all page IDs that will be restored (page + descendants)
+    const pageIds = await db
+      .withRecursive('page_tree', (qb) =>
+        qb
+          .selectFrom('pages')
+          .select('id')
+          .where('id', '=', pageId)
+          .unionAll((eb) =>
+            eb
+              .selectFrom('pages as p')
+              .select('p.id')
+              .innerJoin('page_tree as pt', 'p.parentPageId', 'pt.id')
+              .where('p.deletedAt', 'is not', null),
+          ),
+      )
+      .selectFrom('page_tree')
+      .select('id')
+      .execute();
+
+    const idsToRestore = pageIds.map((p) => p.id);
+
+    if (idsToRestore.length === 0) {
+      return { detachedFromParent, restoredPageIds: [] };
+    }
+
+    // Restore page and all its descendants
+    await db
+      .updateTable('pages')
+      .set({
+        deletedAt: null,
+        deletedById: null,
+        updatedAt: new Date(),
+      })
+      .where('id', 'in', idsToRestore)
+      .execute();
+
+    return { detachedFromParent, restoredPageIds: idsToRestore };
+  }
+
+  async getTrashPages(spaceId: string, pagination: PaginationOptions) {
+    // Get root-level deleted pages (whose parent is not deleted or has no parent)
+    const query = this.db
+      .selectFrom('pages as p')
+      .select([
+        'p.id',
+        'p.slugId',
+        'p.title',
+        'p.icon',
+        'p.spaceId',
+        'p.deletedAt',
+        'p.deletedById',
+      ])
+      .select((eb) =>
+        jsonObjectFrom(
+          eb
+            .selectFrom('spaces')
+            .select(['spaces.id', 'spaces.name', 'spaces.slug'])
+            .whereRef('spaces.id', '=', 'p.spaceId'),
+        ).as('space'),
+      )
+      .select((eb) =>
+        jsonObjectFrom(
+          eb
+            .selectFrom('users')
+            .select(['users.id', 'users.name', 'users.avatarUrl'])
+            .whereRef('users.id', '=', 'p.deletedById'),
+        ).as('deletedBy'),
+      )
+      .leftJoin('pages as parent', 'p.parentPageId', 'parent.id')
+      .where('p.spaceId', '=', spaceId)
+      .where('p.deletedAt', 'is not', null)
+      .where((eb) =>
+        eb.or([
+          eb('p.parentPageId', 'is', null),
+          eb('parent.deletedAt', 'is', null),
+        ]),
+      )
+      .orderBy('p.deletedAt', 'desc');
+
+    return executeWithPagination(query, {
+      page: pagination.page,
+      perPage: pagination.limit,
+    });
+  }
+
+  async permanentlyDeletePageAndDescendants(
+    pageId: string,
+    trx?: KyselyTransaction,
+  ): Promise<string[]> {
+    const db = dbOrTx(this.db, trx);
+
+    // Get all page IDs that will be deleted
+    const pagesToDelete = await db
+      .withRecursive('page_tree', (qb) =>
+        qb
+          .selectFrom('pages')
+          .select('id')
+          .where('id', '=', pageId)
+          .unionAll((eb) =>
+            eb
+              .selectFrom('pages as p')
+              .select('p.id')
+              .innerJoin('page_tree as pt', 'p.parentPageId', 'pt.id'),
+          ),
+      )
+      .selectFrom('page_tree')
+      .select('id')
+      .execute();
+
+    const pageIds = pagesToDelete.map((p) => p.id);
+
+    if (pageIds.length === 0) {
+      return [];
+    }
+
+    // Delete pages (cascade will handle shares, comments, etc.)
+    await db.deleteFrom('pages').where('id', 'in', pageIds).execute();
+
+    return pageIds;
   }
 }

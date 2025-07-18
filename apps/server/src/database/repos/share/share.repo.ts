@@ -136,6 +136,18 @@ export class ShareRepo {
     await query.execute();
   }
 
+  async deleteByPageIds(
+    pageIds: string[],
+    trx?: KyselyTransaction
+  ): Promise<void> {
+    if (pageIds.length === 0) return;
+    
+    await dbOrTx(this.db, trx)
+      .deleteFrom('shares')
+      .where('pageId', 'in', pageIds)
+      .execute();
+  }
+
   async getShares(userId: string, pagination: PaginationOptions) {
     const userSpaceIds = await this.spaceMemberRepo.getUserSpaceIds(userId);
 

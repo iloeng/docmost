@@ -30,8 +30,14 @@ export async function updatePage(data: Partial<IPageInput>): Promise<IPage> {
   return req.data;
 }
 
-export async function deletePage(pageId: string): Promise<void> {
-  await api.post("/pages/delete", { pageId });
+export async function deletePage(pageId: string, forceDelete = false): Promise<{ deletedPageIds: string[] }> {
+  const req = await api.post<{ deletedPageIds: string[] }>("/pages/delete", { pageId, forceDelete });
+  return req.data;
+}
+
+export async function restorePage(pageId: string): Promise<{ detachedFromParent: boolean; restoredPageIds: string[]; page: IPage }> {
+  const req = await api.post<{ detachedFromParent: boolean; restoredPageIds: string[]; page: IPage }>("/pages/restore", { pageId });
+  return req.data;
 }
 
 export async function movePage(data: IMovePage): Promise<void> {
