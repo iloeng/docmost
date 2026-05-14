@@ -81,7 +81,7 @@
     "ioredis": "^5.10.1",
     "js-tiktoken": "^1.0.21",
     "jsonwebtoken": "^9.0.3",
-    "kysely": "^0.29.0",
+    "kysely": "^0.28.17",
     "kysely-migration-cli": "^0.4.2",
     "kysely-postgres-js": "^3.0.0",
     "ldapts": "^8.1.7",
