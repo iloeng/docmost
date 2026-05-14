@@ -69,7 +69,9 @@ export function FullEditor({
   const fullPageWidth = user.settings?.preferences?.fullPageWidth;
   const editorToolbarEnabled =
     user.settings?.preferences?.editorToolbar ?? false;
-  const [currentPageEditMode, setCurrentPageEditMode] = useAtom(currentPageEditModeAtom);
+  const [currentPageEditMode, setCurrentPageEditMode] = useAtom(
+    currentPageEditModeAtom,
+  );
   const userPageEditMode =
     user.settings?.preferences?.pageEditMode ?? PageEditMode.Edit;
   const isEditMode = currentPageEditMode === PageEditMode.Edit;
@@ -78,7 +80,7 @@ export function FullEditor({
   // page navigation — so the mode sticks across navigations within a session.
   useEffect(() => {
     if (!defaultEditModeApplied) {
-      setCurrentPageEditMode(userPageEditMode);
+      setCurrentPageEditMode(userPageEditMode as PageEditMode);
       defaultEditModeApplied = true;
     }
   }, [userPageEditMode, setCurrentPageEditMode]);
@@ -89,7 +91,9 @@ export function FullEditor({
       size={!fullPageWidth && 900}
       className={classes.editor}
     >
-      {editorToolbarEnabled && editable && isEditMode && <MemoizedFixedToolbar />}
+      {editorToolbarEnabled && editable && isEditMode && (
+        <MemoizedFixedToolbar />
+      )}
       <MemoizedDeletedPageBanner slugId={slugId} />
       <MemoizedTitleEditor
         pageId={pageId}
@@ -119,11 +123,7 @@ type PageBylineProps = {
   readOnly?: boolean;
 };
 
-function PageByline({
-  creator,
-  contributors,
-  readOnly,
-}: PageBylineProps) {
+function PageByline({ creator, contributors, readOnly }: PageBylineProps) {
   const { t } = useTranslation();
   const toggleAside = useToggleAside();
 
